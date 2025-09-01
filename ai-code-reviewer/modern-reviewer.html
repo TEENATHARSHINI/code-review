@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modern Code Reviewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --bg: #F9FAFB;
+            --card: #FFFFFF;
+            --text: #111827;
+            --text-secondary: #6B7280;
+            --border: #E5E7EB;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #4F46E5, #7C3AED);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            height: calc(100vh - 200px);
+            min-height: 500px;
+        }
+
+        .panel {
+            padding: 1.5rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .editor-container, .review-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: none;
+            transition: all 0.2s ease;
+            background-color: #1E1E1E;
+            color: #D4D4D4;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .issues-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        /* Custom scrollbar */
+        .issues-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .issues-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .issues-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .issues-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        .issue {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--border);
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .issue:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .issue.error {
+            border-left-color: var(--error);
+        }
+
+        .issue.warning {
+            border-left-color: var(--warning);
+        }
+
+        .issue.info {
+            border-left-color: var(--primary);
+        }
+
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .issue-title {
+            font-weight: 500;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .issue-line {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            background: var(--bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .issue-message {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .issue-suggestion {
+            background: #F3F4F6;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+            border-left: 3px solid var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .suggestion-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .suggestion-title svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .suggestion-content {
+            color: var(--text-secondary);
+        }
+
+        .severity {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .severity.error {
+            background-color: #FEE2E2;
+            color: #B91C1C;
+        }
+
+        .severity.warning {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        .severity.info {
+            background-color: #E0E7FF;
+            color: #3730A3;
+        }
+
+        .code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background: #1E1E1E;
+            color: #D4D4D4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            gap: 1rem;
+        }
+
+        .loading-spinner {
+            width: 2.5rem;
+            height: 2.5rem;
+            border: 3px solid #E5E7EB;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: 800px;
+            }
+            
+            .panel {
+                min-height: 400px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Code Reviewer</h1>
+            <p class="subtitle">Get instant code reviews with AI-powered analysis and suggestions</p>
+        </header>
+
+        <div class="app-container">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                        Your Code
+                    </h2>
+                    <button id="copyBtn" class="btn" style="background: #E5E7EB; color: #4B5563; padding: 0.5rem 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy
+                    </button>
+                </div>
+                <div class="editor-container">
+                    <textarea id="code" spellcheck="false">function calculateTotal(items) {
+    let total = 0;
+    
+    for (let i = 0; i < items.length; i++) {
+        total += items[i].price * items[i].quantity;
+    }
+    
+    return total;
+}
+
+// Example usage
+const cart = [
+    { name: 'Laptop', price: 999.99, quantity: 1 },
+    { name: 'Mouse', price: 24.99, quantity: 2 },
+    { name: 'Keyboard', price: 49.99, quantity: 1 }
+];
+
+console.log('Total: $' + calculateTotal(cart).toFixed(2));</textarea>
+                    <button id="analyzeBtn" class="btn" style="margin-top: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Analyze Code
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel" style="border-left: 1px solid var(--border);">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Code Review
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <span id="issueCount" class="text-sm text-gray-500">0 issues found</span>
+                    </div>
+                </div>
+                <div class="review-container">
+                    <div id="reviewResults" class="issues-list">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Analyzing your code...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const codeTextarea = document.getElementById('code');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const reviewResults = document.getElementById('reviewResults');
+        const issueCount = document.getElementById('issueCount');
+
+        // Sample issues data
+        const sampleIssues = [
+            {
+                id: 1,
+                message: 'Consider adding input validation for the items parameter',
+                line: 1,
+                severity: 'warning',
+                suggestion: 'Add a check at the beginning of the function to ensure items is an array and has the expected structure.'
+            },
+            {
+                id: 2,
+                message: 'Missing JSDoc documentation for the function',
+                line: 1,
+                severity: 'info',
+                suggestion: 'Add JSDoc comments to document the function parameters and return value.'
+            },
+            {
+                id: 3,
+                message: 'Consider using Array.reduce() for cleaner code',
+                line: 4,
+                severity: 'suggestion',
+                suggestion: 'The for loop can be replaced with: `return items.reduce((sum, item) => sum + (item.price * item.quantity), 0);`'
+            },
+            {
+                id: 4,
+                message: 'No error handling for missing price or quantity',
+                line: 5,
+                severity: 'warning',
+                suggestion: 'Add checks to handle cases where price or quantity might be undefined or invalid.'
+            }
+        ];
+
+        // Format the severity text
+        function formatSeverity(severity) {
+            const severityMap = {
+                'error': { text: 'Error', class: 'error' },
+                'warning': { text: 'Warning', class: 'warning' },
+                'info': { text: 'Info', class: 'info' },
+                'suggestion': { text: 'Suggestion', class: 'info' }
+            };
+            return severityMap[severity] || { text: severity, class: 'info' };
+        }
+
+        // Generate HTML for issues
+        function renderIssues(issues) {
+            if (!issues || issues.length === 0) {
+                return `
+                    <div class="text-center py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-green-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900">No issues found!</h3>
+                        <p class="text-gray-500 mt-1">Your code looks clean and follows best practices.</p>
+                    </div>
+                `;
+            }
+
+            return issues.map(issue => {
+                const severity = formatSeverity(issue.severity);
+                return `
+                    <div class="issue ${severity.class}">
+                        <div class="issue-header">
+                            <h3 class="issue-title">
+                                ${issue.message}
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <span class="issue-line">Line ${issue.line}</span>
+                                <span class="severity ${severity.class}">${severity.text}</span>
+                            </div>
+                        </div>
+                        ${issue.suggestion ? `
+                            <div class="issue-suggestion">
+                                <div class="suggestion-title">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                    Suggestion
+                                </div>
+                                <div class="suggestion-content">${issue.suggestion}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Simulate code analysis
+        function analyzeCode() {
+            // Show loading state
+            reviewResults.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Analyzing your code...</p>
+                </div>
+            `;
+
+            // Simulate API call delay
+            setTimeout(() => {
+                const issues = sampleIssues; // In a real app, this would be the API response
+                reviewResults.innerHTML = renderIssues(issues);
+                issueCount.textContent = `${issues.length} ${issues.length === 1 ? 'issue' : 'issues'} found`;
+                
+                // Add click handler for code snippets
+                document.querySelectorAll('.code-snippet').forEach(snippet => {
+                    snippet.addEventListener('click', () => {
+                        navigator.clipboard.writeText(snippet.textContent)
+                            .then(() => {
+                                const originalText = snippet.textContent;
+                                snippet.textContent = 'Copied!';
+                                setTimeout(() => {
+                                    snippet.textContent = originalText;
+                                }, 2000);
+                            });
+                    });
+                });
+            }, 1500);
+        }
+
+        // Copy code to clipboard
+        copyBtn.addEventListener('click', () => {
+            codeTextarea.select();
+            document.execCommand('copy');
+            
+            // Show feedback
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Copied!
+            `;
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+            }, 2000);
+        });
+
+        // Initialize
+        analyzeBtn.addEventListener('click', analyzeCode);
+        
+        // Run initial analysis
+        setTimeout(analyzeCode, 500);
+
+        // Add syntax highlighting (basic)
+        function updateSyntaxHighlighting() {
+            // This is a very basic implementation
+            // In a real app, you'd want to use a proper syntax highlighter
+            const code = codeTextarea.value;
+            // Simple keyword highlighting for demo purposes
+            const highlighted = code
+                .replace(/(function|return|let|const|var|if|else|for|while|in|of|class|extends|async|await|try|catch|finally|throw|new|this|super|import|export|default|from|as|static|get|set|yield|debugger|with)/g, '<span class="text-purple-500">$1</span>')
+                .replace(/(true|false|null|undefined|NaN|Infinity)/g, '<span class="text-blue-400">$1</span>')
+                .replace(///.*$/gm, '<span class="text-gray-500">$&</span>')
+                .replace(/(".*?"|'.*?'|`[\s\S]*?`)/g, '<span class="text-green-400">$1</span>')
+                .replace(/\b(\d+(\.\d+)?)\b/g, '<span class="text-yellow-400">$1</span>');
+            
+            // This is just for display - in a real app, use a proper code editor
+            console.log('Syntax highlighting would be applied here');
+        }
+
+        // Update syntax highlighting when code changes
+        codeTextarea.addEventListener('input', updateSyntaxHighlighting);
+    </script>
+</body>
+</html>
